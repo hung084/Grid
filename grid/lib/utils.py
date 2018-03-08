@@ -116,9 +116,11 @@ def deserialize_keras_model(model_bin):
         model = keras.models.load_model('temp_model2.h5')
         return model
 
+
 def gridhub_authorized():
     c = load_coinbase()
     return c and 'accessToken' in c.keys()
+
 
 def get_gridhub_config():
     gridhub_file = f'{Path.home()}/.openmined/gridhub.json'
@@ -128,8 +130,8 @@ def get_gridhub_config():
 
     defaults = {
         'hostname': 'opengrid.ai',
-        'protocol': 'https://',
-        'redirect': 'https://opengrid.ai/callback'
+        'redirect': 'https://opengrid.ai/callback',
+        'build': 'prod'
     }
 
     set_values = {}

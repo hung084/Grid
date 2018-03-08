@@ -8,7 +8,8 @@ class GridPayment():
         gridhub_config = utils.get_gridhub_config()
 
         self.hostname = gridhub_config['hostname']
-        self.protocol = gridhub_config['protocol']
+        self.build = gridhub_config['build']
+        self.protocol = 'https://' if gridhub_config['build'] is 'prod' else 'http://'
 
         self.client_id = "61638403d5bee9d1479b81788e5c81956d6c93af8dd078ef7d012716409bead5"
         self.host = self.protocol + self.hostname
@@ -26,11 +27,11 @@ class GridPayment():
                 answer = input('y/n')
 
             if answer == 'y':
-                return websockets.get_token(self.hostname, self.redirect)
+                return websockets.get_token(self.hostname, self.redirect, self.build)
             else:
                 return
         else:
-            return websockets.get_token(self.hostname, self.redirect)
+            return websockets.get_token(self.hostname, self.redirect, self.build)
 
     def send_ether(self, email, amount, access_token=None, refresh_token=None):
         if access_token is None:

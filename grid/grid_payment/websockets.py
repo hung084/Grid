@@ -40,7 +40,7 @@ async def get_auth_token(future, uri, state):
                 break
 
 
-def get_token(hostname, redirect):
+def get_token(hostname, redirect, build):
     state = str(uuid.uuid4())
 
     getVars = {
@@ -61,7 +61,10 @@ def get_token(hostname, redirect):
 
     loop = asyncio.get_event_loop()
     future = asyncio.Future()
-    asyncio.ensure_future(get_auth_token(future, f'wss://{hostname}', state))
+
+    protocol = 'wss://' if build == 'prod' else 'ws://'
+
+    asyncio.ensure_future(get_auth_token(future, protocol + hostname, state))
     loop.run_until_complete(future)
 
     r = future.result()
