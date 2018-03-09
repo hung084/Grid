@@ -1,11 +1,9 @@
 from . import base_worker
-from ..lib import strings, utils, output_pipe
-from .. import channels
+from ..lib import strings
 from ..services.fit_worker import FitWorkerService
 from ..services.listen_for_openmined_nodes import ListenForOpenMinedNodesService
 from ..services.torch.torch_service import TorchService
-import json
-import threading
+
 
 class GridCompute(base_worker.GridWorker):
 
