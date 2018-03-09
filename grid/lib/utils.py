@@ -23,19 +23,14 @@ def get_ipfs_api(ipfs_addr='127.0.0.1', port=5001, max_tries=10):
             sys.stdout.write('.')
             time.sleep(1)
 
-            print("WUT")
             try:
-                print("WUT1")
+                # check to see if ipfs daemon is actually running on 5001
                 with open("ipfs.log", "r") as fd:
-                    print("WUT2")
                     for line in fd:
-                        print("WUT3")
                         if re.search("API server listening on", line):
-                            print("WUT4")
-                            port = sp.split('/')[4]
-                            print(port)
+                            new_port = line.split('/')[4]
 
-                out = ipfsapi.connect(ipfs_addr, port)
+                out = ipfsapi.connect(ipfs_addr, new_port)
                 print(f'\n{Fore.GREEN}SUCCESS: {Style.RESET_ALL}Connected!!! - My ID: ' + str(out.config_show()['Identity']['PeerID']))
                 return out
             except:
