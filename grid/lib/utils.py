@@ -23,10 +23,15 @@ def get_ipfs_api(ipfs_addr='127.0.0.1', port=5001, max_tries=10):
             sys.stdout.write('.')
             time.sleep(1)
 
+            print("WUT")
             try:
+                print("WUT1")
                 with open("ipfs.log", "r") as fd:
+                    print("WUT2")
                     for line in fd:
+                        print("WUT3")
                         if re.search("API server listening on", line):
+                            print("WUT4")
                             port = sp.split('/')[4]
                             print(port)
 
