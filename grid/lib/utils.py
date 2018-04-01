@@ -72,7 +72,8 @@ def get_ipfs_id(api):
 
 def get_id(node_type, api):
     peer_id = get_ipfs_id(api)
-    return derive_id(node_type, peer_id)
+    return peer_id
+    # return derive_id(node_type, peer_id)
 
 
 def derive_id(node_type, peer_id):

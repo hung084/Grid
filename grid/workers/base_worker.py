@@ -71,6 +71,8 @@ class GridWorker():
         nodes = nodes['Strings']
 
         if (nodes is not None):
+            for node in nodes:
+                print('---> Node: ' + node)
             return nodes
         else:
             return []
