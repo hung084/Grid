@@ -195,14 +195,17 @@ class BaseClient(base_worker.GridWorker):
 
         return self.all_tasks
 
-    def add_task(self, name, data_dir=None, adapter=None):
-        if data_dir is None and adapter is None:
+    def add_task(self, name, dataset=None, data_dir=None, adapter=None):
+        # 04/02/2018: This condition will need to be changed
+        if data_dir is None and adapter is None and dataset is None:
             print(
                 f'{Fore.RED}data_dir and adapter can not both be None{Style.RESET_ALL}'
             )
             return
 
         task_data = {'name': name, 'creator': self.id}
+        # 04/20/2018: Added new parameter for different dataset
+        task_data['dataset'] = dataset
 
         if data_dir is not None:
             task_data['data_dir'] = data_dir

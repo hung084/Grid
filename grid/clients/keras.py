@@ -225,3 +225,5 @@ class KerasClient(base.BaseClient):
         update_addr = self.api.add_json(update)
         self.publish(channels.add_model(name), update_addr)
         print(f"ADDED NEW MODELS WEIGHT TO {update_addr}")
+
+        self.send_model(name, model_addr)

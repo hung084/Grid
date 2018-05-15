@@ -10,6 +10,7 @@ from bitcoin import base58
 import os
 from pathlib import Path
 from colorama import Fore, Back, Style
+from keras import backend as K
 import json
 import numpy as np
 
@@ -114,6 +115,10 @@ class GridTree(base_worker.GridWorker):
                 utils.store_task(name, addr)
 
                 self.load_adapter(t['adapter'])
+            # 04/20/2018: Check for dataset
+            elif 'dataset' in t.keys():
+                self.listen_for_models(name)
+                utils.store_task(name, addr)
 
     def list_models(self, message):
         """
@@ -187,7 +192,7 @@ class GridTree(base_worker.GridWorker):
             keras_utils.save_best_keras_model_for_task(self.api, task_name,
                                                        model)
 
-        self.add_model(name, model, parent=task_addr)
+        #self.add_model(name, model, parent=task_addr)
 
     def added_local_data_model(self, info):
         task_addr = info['task']
@@ -253,6 +258,109 @@ class GridTree(base_worker.GridWorker):
         print('load next input')
         n_test, n_target = grid_adapter.next_input()
         self.train_model(model, n_test, n_target, name, task_name, task_addr)
+    
+    # 04/20/2018: Function to train model for a certain data set
+    def added_dataset_model(self, info):
+        task_addr = info['task']
+        task_info = self.api.get_json(task_addr)
+
+        task_name = info['name']
+        model_addr = info['model']
+
+        model = keras_utils.ipfs2keras(self.api, model_addr)
+
+        dataset = task_info['dataset']
+
+        if dataset == 'cifar10':
+            print('Running cifar10 dataset')
+            import grid.adapters.cifar10 as cifar10_adapter
+            (x_train, y_train), (x_test, y_test) = cifar10_adapter.load_data()
+
+            print('Building model...')
+            hist = model.fit(
+                x_train,
+                y_train,
+                batch_size=32,
+                epochs=100,
+                validation_data=(x_test, y_test),
+                shuffle=True
+            )
+
+            loss = hist.history.get('loss')[-1]
+            acc = hist.history.get('acc')[-1]
+            print(
+                f'{Fore.GREEN}Finished training {Fore.YELLOW} -- loss {loss} -- acc {acc}{Style.RESET_ALL}'
+            )
+
+        elif dataset == 'oct':
+            print('Running oct2017 dataset')
+            import grid.adapters.oct as oct
+            from sklearn.utils import class_weight
+            (x_train, y_train), (x_test, y_test), (raw_y_train, _) = oct.load_data()
+
+            print('Building model...')
+            weight = class_weight.compute_class_weight('balanced', np.unique(raw_y_train), raw_y_train)
+
+            hist = model.fit(
+                x_train,
+                y_train,
+                batch_size=32,
+                epochs=83,
+                class_weight=weight,
+                validation_data=(x_test, y_test)
+            )
+
+            loss = hist.history.get('loss')[-1]
+            acc = hist.history.get('acc')[-1]
+            print(
+                f'{Fore.GREEN}Finished training {Fore.YELLOW} -- loss {loss} -- acc {acc}{Style.RESET_ALL}'
+            )
+
+        elif dataset == 'mskcc':
+            print('Running mskcc dataset')
+            import grid.adapters.mskcc as mskcc
+
+            (x_train, y_train), (x_test, y_test) = mskcc.load_data()
+
+            print('Building model...')
+            hist = model.fit(
+                x_train,
+                y_train,
+                batch_size=32,
+                epochs=50,
+                validation_split=0.2
+            )
+            
+            loss = hist.history.get('loss')[-1]
+            acc = hist.history.get('acc')[-1]
+            print(
+                f'{Fore.GREEN}Finished training {Fore.YELLOW} -- loss {loss} -- acc {acc}{Style.RESET_ALL}'
+            )
+
+        elif dataset == 'diabetic':
+            print('Running diabetic dataset')
+            import grid.adapters.diabetic as diabetic
+
+            (x_train, y_train), (x_test, y_test) = diabetic.load_data()
+            
+            print('Building model...')
+            hist = model.fit(
+                x_train,
+                y_train,
+                batch_size=32,
+                epochs=50,
+                validation_data=(x_test, y_test)
+            )
+            loss = hist.history.get('loss')[-1]
+            acc = hist.history.get('acc')[-1]
+            print(
+                f'{Fore.GREEN}Finished training {Fore.YELLOW} -- loss {loss} -- acc {acc}{Style.RESET_ALL}'
+            )
+
+        else:
+            print('Cannot recognize dataset')
+
+        K.clear_session()
 
     def added_model(self, info):
         info = self.api.get_json(info['data'])
@@ -266,8 +374,12 @@ class GridTree(base_worker.GridWorker):
             self.added_local_data_model(info)
         elif 'adapter' in task_info.keys():
             self.added_adapter_model(info)
+        # 04/20/2018: Check for dataset, this could replace 'data_dir'
+        elif 'dataset' in task_info.keys():
+            self.added_dataset_model(info)
 
     def load_adapter(self, addr):
+        print(f'Calling load adapter...')
         b = self.api.cat(addr)
         utils.ensure_exists(f'{Path.home()}/.openmined/grid/adapters/t.py', b)
         exec(open(f'{Path.home()}/.openmined/grid/adapters/t.py').read())

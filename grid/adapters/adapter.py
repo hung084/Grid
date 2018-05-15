@@ -12,6 +12,7 @@ Results on IMDB datasets with uni and bi-gram embeddings:
 
 from __future__ import print_function
 import numpy as np
+import keras as keras
 
 from keras.preprocessing import sequence
 from keras.models import Sequential
@@ -67,7 +68,7 @@ def add_ngram(sequences, token_indice, ngram_range=2):
 # ngram_range = 2 will add bi-grams features
 ngram_range = 1
 max_features = 20000
-maxlen = 400
+maxlen = 784
 batch_size = 32
 embedding_dims = 50
 epochs = 5
@@ -113,6 +114,9 @@ x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
 x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
 print('x_train shape:', x_train.shape)
 print('x_test shape:', x_test.shape)
+
+y_train = keras.utils.to_categorical(y_train, 10)
+y_test = keras.utils.to_categorical(y_test, 10)
 
 print('Build model...')
 
